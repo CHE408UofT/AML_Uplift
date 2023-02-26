@@ -1,0 +1,56 @@
+####Package
+```{r, echo = TRUE}
+install.packages("tool4uplift")
+```
+
+####General - Heck
+```{r, echo = TRUE}
+library(tools4uplift)
+setwd("C:/") #Include here directory
+data <-read.csv(file="UpliftOutputOutdoor.csv",head=TRUE,sep=",")
+
+
+#Split data into training and validation sets
+split <- SplitUplift(data, 0.7, c("benzene", "outcome"))
+train <- split[[1]]
+valid <- split[[2]]
+train
+
+#baseline model - fitting the two-model estimator
+fit <- DualUplift(train, "benzene", "outcome", predictors = colnames(data[, 1:8]))
+print(fit)
+summary(fit)
+
+fit.valid<- valid
+
+fit.valid$pred<-predict(fit,fit.valid)
+```
+```{r}
+#predict on the train set
+fit.train<- train
+fit.train$pred<-predict(fit,fit.train)
+```
+
+
+```{r}
+#evaluate performance
+fit.perf<-PerformanceUplift(fit.valid,"benzene","outcome","pred",nb.group=5)
+
+```
+
+```{r}
+plot(fit.perf, type = 'b', lwd = 2, col= 'blue4', cex.axis = 1.5, cex.lab = 1.5)
+```
+
+
+```{r}
+barplot(fit.perf,col='blue4',cex.axis=1.5,cex.names=1.5,cex.lab=1.5)
+abline(h = 4.5, lwd = 2, lty = 2)
+round(QiniArea(fit.perf, adjusted = TRUE), 2)
+```
+
+```{r}
+#evaluate performance
+round(QiniArea(fit.perf, adjusted = TRUE), 2)
+```
+
